@@ -1,0 +1,358 @@
+﻿@using EventManagerWebRazorPage.ViewModels
+@model ParticipationListViewModel;
+
+@{
+    ViewData["Title"] = "Details";
+    bool registrationAvailable = (ViewData["RegistrationAvailable"] != null && ViewData["RegistrationAvailable"]!.ToString() == "1") ? true : false;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var eventId = Model.EventDetail.EventId;
+}
+
+<h1 class="text-center">Participation List</h1>
+
+<div>
+    <div class="row pb-2 pt-4">
+        <div class="col-3">
+            <button id="HideEventDetails" hide-value="0" class="btn btn-primary">Hide Event Details</button>
+        </div>
+    </div>
+    <div id="EventDetail" class="border border-primary">
+        <div class="ms-3 me-3">
+            <div class="row fs-5 pt-2 pb-2">
+                <div class="col-6 text-center">
+                    @Html.DisplayNameFor(model => Model.ParticipantsServed): <label id="ParticipantsServed">@Model.ParticipantsServed</label>
+                </div>
+                <div class="col-6 text-center">
+                    @Html.DisplayNameFor(model => Model.TotalParticipants): @Html.DisplayFor(model => Model.TotalParticipants)
+                </div>
+            </div>
+            <div class="row border border-2 fs-4 pb-1 mb-1">
+                <div class="col-4 text-center">
+                    @Html.DisplayNameFor(model => Model.EventItemViewModels[0].EventItem.ItemName)
+                </div>
+                <div class="col-4 text-center border-start border-end border-2">
+                    @Html.DisplayNameFor(model => Model.EventItemViewModels[0].ItemsRegistered)
+                </div>
+                <div class="col-4 text-center">
+                    @Html.DisplayNameFor(model => Model.EventItemViewModels[0].ItemsServed)
+                </div>
+            </div>
+            <div class="pb-1">
+                @foreach (var eventItem in Model.EventItemViewModels)
+                {
+                    <div class="row pt-1 pb-1 mb-1 border">
+                        <div class="col-4 text-center">
+                            @Html.DisplayFor(modelItem => eventItem.EventItem.ItemName)
+                        </div>
+                        <div class="col-4 text-center border-start border-end">
+                            @Html.DisplayFor(modelItem => eventItem.ItemsRegistered)
+                        </div>
+                        <div class="col-4 text-center">
+                            <label id="ItemsServed" data-id="@eventItem.EventItem.ItemId">@eventItem.ItemsServed</label>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row pt-4 pb-1">
+        <div class="col-6">
+            Search By User Internal ID:
+            <input type="text" id="searchRegistrationInput" placeholder="0000" />
+            <button id="searchRegistrationButton" class="btn btn-primary">Search</button>
+            <button id="searchResetButton" class="btn btn-primary">Reset Search</button>
+            <label id="searchRegistrationLabel"></label>
+        </div>
+    </div>
+    <div class="row fs-4 border border-3 pb-1 mb-2">
+        <div class="col-3 border-end">
+            @Html.DisplayNameFor(model => Model.UserRegistrationViewModels[0].UserName)
+        </div>
+        <div class="col-1 border-end">
+            @Html.DisplayNameFor(model => Model.UserRegistrationViewModels[0].InternalId)
+        </div>
+        <div class="col-3 border-end">
+            @Html.DisplayNameFor(model => Model.UserRegistrationViewModels[0].EventItemName)
+        </div>
+        <div class="col-3 border-end">
+            @Html.DisplayNameFor(model => Model.UserRegistrationViewModels[0].Served)
+        </div>
+        <div class="col-2">
+            @Html.DisplayNameFor(model => Model.UserRegistrationViewModels[0].ConfirmStatus)
+        </div>
+    </div>
+    <div class="searchResult">
+        @foreach (var registration in Model.UserRegistrationViewModels)
+        {
+            <div class="row border border-1 pt-1 pb-1 mb-1">
+                <div class="col-3 border-end">
+                    @Html.HiddenFor(modelItem => registration.UserRegistrationId)
+                    <label><a asp-controller="Home" asp-action="RegistrationHistory" asp-route-id="@registration.UserId" asp-route-eventId="@Model.EventDetail.EventId">@registration.UserName</a></label>
+                </div>
+                <div class="col-1 border-end">
+                    @Html.DisplayFor(modelItem => registration.InternalId)
+                </div>
+                <div class="col-3 border-end">
+                    @Html.DisplayFor(modelItem => registration.EventItemName)
+                </div>
+                <div class="col-3 border-end">
+                    @if (registration.Served)
+                    {
+                        <label name="CheckinTime" data-id=@registration.UserRegistrationId>@registration.CheckinTime.ToString("hh:mm:ss")</label>
+                        <input type="button" name="checkinButton" data-id="@registration.UserRegistrationId" value="Check In" hidden />
+                        <input type="button" name="cancelCheckinButton" data-id="@registration.UserRegistrationId" value="Revert" />
+                    }
+                    else
+                    {
+                        <label name="CheckinTime" data-id=@registration.UserRegistrationId hidden></label>
+                        <input type="button" name="checkinButton" data-id="@registration.UserRegistrationId" value="Check In" />
+                        <input type="button" name="cancelCheckinButton" data-id="@registration.UserRegistrationId" value="Revert" hidden />
+                    }
+                </div>
+                <div class="col-2">
+                    @if (registration.Served)
+                    {
+                        <label name="confirmStatus" data-id="@registration.UserRegistrationId">@registration.ConfirmStatus</label>
+                    }
+                    else
+                    {
+                        <label name="confirmStatus" data-id="@registration.UserRegistrationId" hidden>@registration.ConfirmStatus</label>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+
+            document.getElementById('HideEventDetails').addEventListener('click', function (event) {
+                event.preventDefault();
+                if ($(this).attr('hide-value') == '1') {
+                    $(this).attr('hide-value', '0');
+                    $("div#EventDetail").slideDown();
+                    $(this).text('Hide Event Details');
+                }
+                else {
+                    $(this).attr('hide-value', '1');
+                    $("div#EventDetail").slideUp();
+                    $(this).text('Unhide Event Details');
+                }
+            });
+            document.getElementById('searchRegistrationButton').addEventListener('click', function (event) {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("SearchUserRegistration")",
+                    dataType: "json",
+                    data:
+                    {
+                        internalId: $("input[id='searchRegistrationInput']").val(),
+                        eventId:  '@Model.EventDetail.EventId'
+                    },
+                    beforeSend: function () {
+                        SearchResultLoading('before');
+                    },
+                    success: function (result) {
+                        SearchResultLoading('success');
+                        PopulateSearchResult(result);
+                    },
+                    error: function () {
+                        SearchResultLoading('error');
+                    }
+                });
+                event.preventDefault();
+            });
+            document.getElementById('searchResetButton').addEventListener('click', function (event) {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("SearchUserRegistration")",
+                    dataType: "json",
+                    data:
+                    {
+                        internalId: "",
+                        eventId: '@Model.EventDetail.EventId'
+                    },
+                    beforeSend: function () {
+                        SearchResultLoading('before');
+                    },
+                    success: function (result) {
+                        SearchResultLoading('success');
+                        PopulateSearchResult(result);
+                    },
+                    error: function () {
+                        SearchResultLoading('error');
+                    }
+                });
+                event.preventDefault();
+            });
+
+            const checkinButtons = Array.from(document.getElementsByName('checkinButton'));
+            checkinButtons.forEach(checkinButton => {
+                checkinButton.addEventListener('click', function (event) 
+                {
+                    var id = $(this).attr("data-id");
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("MarkRegistrationAsServed")",
+                        dataType: "json",
+                        data: 
+                        {
+                            regisId: id,
+                            served: true
+                        },
+                        beforeSend: function (func) {
+                            CheckinBeforeSendLogic('checkinButton', id);
+                        },
+                        success: function (result) {
+                            CheckinSuccessLogic('cancelCheckinButton', id, result);
+                        },
+                        error: function (req, status, error) {
+                            CheckinOnErrorLogic('checkinButton', id);
+                        }
+                    });
+                    event.preventDefault();
+                });
+            });
+            const cancelCheckinButtons = Array.from(document.getElementsByName('cancelCheckinButton'));
+            cancelCheckinButtons.forEach(cancelCheckinButton => {
+                var id = $(cancelCheckinButton).attr("data-id");
+                if ($("label[name='confirmStatus'][data-id='" + id + "']").text() == 'Confirmed') {
+                    $(cancelCheckinButton).prop('disabled', true);
+                }
+                cancelCheckinButton.addEventListener('click', function (event) {
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("MarkRegistrationAsServed")",
+                        dataType: "json",
+                        data:
+                        {
+                            regisId: id,
+                            served: false
+                        },
+                        beforeSend: function (func) {
+                            CheckinBeforeSendLogic('cancelCheckinButton', id);
+                        },
+                        success: function (result) {
+                            CancelCheckinSuccessLogic('checkinButton', id);
+                        },
+                        error: function (req, status, error) {
+                            CheckinOnErrorLogic('cancelCheckinButton', id);
+                        }
+                    });
+                    event.preventDefault();
+                });
+            });
+
+            function CheckinBeforeSendLogic(buttonName, id) {
+                $("[name='" + buttonName + "'][data-id='" + id + "']").prop('hidden', true);
+                $("label[name='CheckinTime'][data-id='" + id + "']").prop('hidden', false).text('Updating...');
+                AddLoadingSpinner("label[name='CheckinTime'][data-id='" + id + "']");
+            }
+            function CheckinOnErrorLogic(buttonName, id) {
+                console.log(error);
+                AddModal("Check In Error", error);
+                $("[name='" + buttonName + "'][data-id='" + id + "']").prop('hidden', false);
+                $("label[name='CheckinTime'][data-id='" + id + "']").prop('hidden', false).text('Update Failed');
+                RemoveLoadingSpinner("label[name='CheckinTime'][data-id='" + id + "']");
+            }
+
+            function CheckinSuccessLogic(buttonName, id, result) {
+                RemoveLoadingSpinner("label[name='CheckinTime'][data-id='" + id + "']");
+                var checkinTime = result.value.checkinTime;
+                $("label[name='CheckinTime'][data-id='" + id + "']").text(checkinTime);
+                $("[name='" + buttonName + "'][data-id='" + id + "']").prop('hidden', false);
+                $("label[name='confirmStatus'][data-id='" + id + "']").prop('hidden', false).text('Pending');
+                var participantsServed = parseInt($("label[id='ParticipantsServed']").text()) + 1;
+                $("label[id='ParticipantsServed']").text(participantsServed);
+            }
+
+            function CancelCheckinSuccessLogic(buttonName, id) {
+                RemoveLoadingSpinner("label[name='CheckinTime'][data-id='" + id + "']");
+                $("[name='" + buttonName + "'][data-id='" + id + "']").prop('hidden', false);
+                $("label[name='CheckinTime'][data-id='" + id + "']").prop('hidden', true);
+                $("label[name='confirmStatus'][data-id='" + id + "']").prop('hidden', true).text('');
+                var participantsServed = parseInt($("label[id='ParticipantsServed']").text()) - 1;
+                $("label[id='ParticipantsServed']").text(participantsServed);
+            }
+            function IsHidden(hidden) { 
+                if (hidden)
+                    return "hidden";
+                else
+                    return null;
+            }
+            function IsDisabled(disabled) {
+                if (disabled)
+                    return "disabled";
+                else
+                    return null;
+            }
+            function ConvertConfirmStatus(confirmStatus) {
+                var status = "";
+                switch (confirmStatus) {
+                    case -1: status = "Denied"; break;
+                    case 0: default: status = "Pending"; break;
+                    case 1: status = "Confirmed"; break;
+                }
+                return status;
+            }
+            function PopulateSearchResult(result) {
+                $("div.searchResult").empty();
+                var str = "";
+                $.each(result.value.userRegistrations, function (index, value) {
+                    var served = value.served;
+                    var confirmStatus = ConvertConfirmStatus(value.confirmStatus);
+                    var checkinTime = value.checkinTime.split('T')[1].split('.')[0];
+                    if (!served) {
+                        checkinTime = "";
+                    }
+                    var disableButton = confirmStatus.startsWith('Confirmed') ? true : false;
+                    //testing
+                    str += `
+                    <div class="row border border-1 pt-1 pb-1 mb-1">
+                        <div class="col-3 border-end">
+                            <input type='hidden' value='${value.userRegistrationId}'/>
+                            <label><a href="/Identity/Account/Manage/RegistrationHistory/${value.userId}?eventId=@eventId">${value.userName}</a></label>
+                        </div>
+                        <div class="col-1 border-end">
+                            ${value.internalId}
+                        </div>
+                        <div class="col-3 border-end">
+                            ${value.eventItemName}
+                        </div>
+                        <div class="col-3 border-end">
+                            <label name='CheckinTime' data-id='${value.userRegistrationId}' `+ IsHidden(!served) + `>${checkinTime}</label>
+                            <input type='button' name = 'checkinButton' data-id='${value.userRegistrationId}' ` + IsHidden(served) + ` ` + IsDisabled(disableButton) + ` value = 'Check In' />
+                            <input type='button' name = 'cancelCheckinButton' data-id='${value.userRegistrationId}' ` + IsHidden(!served) + ` ` + IsDisabled(disableButton) + ` value = 'Revert' />
+                        </div>
+                        <div class="col-2">
+                            <label name='confirmStatus' data-id='${value.userRegistrationId}' ` + IsHidden(!served) + `>${confirmStatus}</label>
+                        </div>
+                    </div>`;
+                });
+                $("div.searchResult").html(str);
+            }
+            function SearchResultLoading(type){
+                if (type == 'before') {
+                    AddLoadingSpinner("#searchResetButton");
+                    $("label#searchRegistrationLabel").text('Loading...');
+                    return;
+                }
+                RemoveLoadingSpinner("#searchResetButton");
+                if (type == 'error') {
+                    $("label#searchRegistrationLabel").text('An error has occured');
+                    return;
+                }
+                $("label#searchRegistrationLabel").text('');
+            }
+        });
+    </script>
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/confirmStatus.js"></script>
+    <script src="~/js/LoadingSpinner.js"></script>
+    <script src="~/js/AlertModal.js"></script>
+}

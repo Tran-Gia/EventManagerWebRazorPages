@@ -1,0 +1,100 @@
+﻿@using EventManagerWebRazorPage.ViewModels;
+@using EventManagerWebRazorPage.Areas.Identity.Pages.Account.Manage
+
+@using EventManagerWebRazorPage
+@using EventManagerWebRazorPage.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@model UserRegistrationHistoryListViewModel;
+@{
+    ViewData["ActivePage"] = "RegistrationHistory";
+    ViewData["ParentLayout"] = "/Views/Shared/_Layout.cshtml";
+    Layout = "/Areas/Identity/Pages/Account/Manage/_Layout.cshtml";
+    var showFullDetails = false;
+    if (User.IsInRole("Organizer"))
+    {
+        showFullDetails = true;
+        ViewData["ParentLayout"] = null;
+        Layout = "/Views/Shared/_Layout.cshtml";
+    }
+}
+<div class="container">
+    <div class="row pb-2">
+        <div class="d-flex justify-content-center">
+            <h3 class="fw-bold">Registration History</h3>
+        </div>
+    </div>
+    <br/>
+    @if (showFullDetails)
+    {
+        <div class="row pb-2">
+            <a asp-controller="Event" asp-action="ParticipationList" asp-route-id="@Model.EventId">&lt; Back To Participation List</a>
+        </div>
+        <div class="row">
+            <div class="d-flex justify-content-around">
+                <label>@Html.DisplayNameFor(x => x.UserName): @Html.DisplayFor(x => x.UserName)</label>
+                <label>@Html.DisplayNameFor(x => x.CreditScore): @Html.DisplayFor(x => x.CreditScore)</label>
+                <label>@Html.DisplayNameFor(x => x.ConsecutiveCheckIn): @Html.DisplayFor(x => x.ConsecutiveCheckIn)</label>
+            </div>
+        </div>
+        <br/>
+    }
+    <div class="row border-top border-bottom border-3">
+        <div class="col-3 border-start border-3">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <h5 class="text-center">
+                    @Html.DisplayNameFor(x => x.UserRegistrationHistoryViewModels[0].ItemName)
+                </h5>
+            </div>
+        </div>
+        <div class="col-3 border-start border-1">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <h5 class="text-center">
+                    @Html.DisplayNameFor(x => x.UserRegistrationHistoryViewModels[0].EventName)
+                </h5>
+            </div>
+        </div>
+        <div class="col-2 border-start border-1">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <h5 class="text-center">
+                    @Html.DisplayNameFor(x => x.UserRegistrationHistoryViewModels[0].RegistrationStatus)
+                </h5>
+            </div>
+        </div>
+        <div class="col-2 border-start border-end border-1">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <h5 class="text-center">
+                    @Html.DisplayNameFor(x => x.UserRegistrationHistoryViewModels[0].RegistrationTime)
+                </h5>
+            </div>
+        </div>
+        <div class="col-2 border-end border-3">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <h5 class="text-center">
+                    @Html.DisplayNameFor(x => x.UserRegistrationHistoryViewModels[0].CheckInTime)
+                </h5>
+            </div>
+        </div>
+    </div>
+    <br />
+    @foreach(var modelItem in Model.UserRegistrationHistoryViewModels)
+    {
+        <div class="row border border-1 pb-1">
+            <div class="col-3 border-end">
+                @Html.DisplayFor(x => modelItem.ItemName)
+            </div>
+            <div class="col-3 border-end">
+                @Html.DisplayFor(x => modelItem.EventName)
+            </div>
+            <div class="col-2 border-end">
+                @Html.DisplayFor(x => modelItem.RegistrationStatus)
+            </div>
+            <div class="col-2 border-end">
+                @Html.DisplayFor(x => modelItem.RegistrationTime)
+            </div>
+            <div class="col-2 border-start">
+                @Html.DisplayFor(x => modelItem.CheckInTime)
+            </div>
+        </div>
+    }
+</div>

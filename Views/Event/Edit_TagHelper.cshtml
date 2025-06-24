@@ -1,0 +1,223 @@
+﻿@using EventManagerWebRazorPage.ViewModels
+@model EventDetailViewModel
+
+@{
+    string path = ViewBag.ImagePath;
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    List<EventItem> eventItems = Model.EventDetail.EventItem.ToList();
+    var eventItemCount = eventItems.Count;
+    string? editRestrictedModeMessage = (ViewData["EditRestrictedMode"] != null && !String.IsNullOrEmpty(ViewData["EditRestrictedMode"]!.ToString())) ? ViewData["EditRestrictedMode"]!.ToString() : null;
+    var minDate = DateTime.Now.Date.AddDays(1).ToString("yyyy-MM-dd");
+}
+
+<h1>Edit Event</h1>
+
+@if (!String.IsNullOrEmpty(editRestrictedModeMessage))
+{
+    <h4 class="text-danger fw-bold">Edit Restricted Mode</h4>
+}
+<hr />
+<div>
+    <form asp-action="Edit" enctype="multipart/form-data">
+        <div class="row">
+            <div class="border-end col-6">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="EventDetail.EventId" class="ModelId" />
+                <div class="form-floating mb-3">
+                    <input asp-for="EventDetail.Title" class="form-control" id="InputTitle" placeholder="Title"/>
+                    <label asp-for="EventDetail.Title" for="InputTitle"></label>
+                    <span asp-validation-for="EventDetail.Title" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea asp-for="EventDetail.Message" class="form-control" id="InputMessage" placeholder="Message" rows="3" style="height:100%;"></textarea>
+                    <label asp-for="EventDetail.Message" for="InputMessage"></label>
+                    <span asp-validation-for="EventDetail.Message" class="text-danger"></span>
+                </div>
+                <div class="row pb-2">
+                    <label>Registration Timeline</label>
+                </div>
+                <div class="row form-group pb-2">
+                    <div class="row">
+                        <label asp-for="EventDetail.RegistrationStartDate" class="control-label col-form-label col-1"></label>
+                        <div class="col-5">
+                            <div class="input-group" id="RegistrationStartDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="RegistrationStartDatePickerInput" type="text" class="form-control" data-td-target="#RegistrationStartDatePicker" readonly style="background:white" />
+                                <input asp-for="EventDetail.RegistrationStartDate" hidden />
+                                <span class="input-group-text" data-td-target="#RegistrationStartDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <label asp-for="EventDetail.RegistrationEndDate" class="control-label col-form-label col-1"></label>
+                        <div class="col-5">
+                            <div class="input-group" id="RegistrationEndDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="RegistrationEndDatePickerInput" type="text" class="form-control" data-td-target="#RegistrationEndDatePicker" readonly style="background:white" />
+                                <input asp-for="EventDetail.RegistrationEndDate" hidden />
+                                <span class="input-group-text" data-td-target="#RegistrationEndDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <span asp-validation-for="EventDetail.RegistrationStartDate" class="text-danger"></span>
+                        <span asp-validation-for="EventDetail.RegistrationEndDate" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row form-group pb-2">
+                    <div class="row">
+                        <label asp-for="EventDetail.EventTime" class="control-label col-form-label col-3"></label>
+                        <div class="col-9">
+                            <div class="input-group" id="EventDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="EventDatePickerInput" type="text" class="form-control" data-td-target="#EventDatePicker" readonly style="background:white" />
+                                <input asp-for="EventDetail.EventTime" class="form-control" hidden />
+                                <span class="input-group-text" data-td-target="#EventDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <span asp-validation-for="EventDetail.EventTime" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <div class="row">
+                        <label>Event Image:</label>
+                    </div>
+                    <img id="previewImage" class="mt-2 mb-2" src="@Url.Content(path + Model.EventDetail.MainImage)" style="max-height:400px;max-width:400px" />
+                    <input type="file" class="form-control" name="Image" id="Image" style="margin: 0 auto" accept=".png,.jpg,.jpeg,.gif" onchange="document.getElementById('previewImage').src = window.URL.createObjectURL(this.files[0])" />
+                </div>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="form-group">
+                <div class="h4">
+                    Event Items:
+                    <small class="text-muted ps-3" id="ItemCounter"></small>
+                </div>
+                <br />
+                @for (int i = 0; i < eventItems.Count; i++)
+                {
+                    <div class="options" data-id='@i'>
+                        <div class="row">
+                            <div class="col-1 d-flex justify-content-center">
+                                <div class="row d-flex align-content-center">
+                                    <div class="border border-primary">
+                                        <label class="fw-bold" name="ItemNumber"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-11 border border-primary rounded">
+                                <div class="row">
+                                    <div class="col-6 ms-2 me-2 pb-3 border-end">
+                                        <br />
+                                        <input asp-for="@eventItems[i].EventId" type="hidden" />
+                                        <input asp-for="@eventItems[i].ItemId" type="hidden" />
+                                        <div class="form-floating mb-3">
+                                            <input asp-for="@eventItems[i].ItemName" class="form-control" id="ItemName" placeholder="Item Name" />
+                                            <label asp-for="@eventItems[i].ItemName" for="ItemName"></label>
+                                            <span asp-validation-for="@eventItems[i].ItemName" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            <textarea asp-for="@eventItems[i].Description" class="form-control" id="ItemDescription" placeholder="Description" rows="2" style="height:100%"></textarea>
+                                            <label asp-for="@eventItems[i].Description" for="ItemDescription"></label>
+                                            <span asp-validation-for="@eventItems[i].Description" class="text-danger"></span>
+                                        </div>
+                                        <div class="row">
+                                            <label asp-for="@eventItems[i].Amount" class="col-2 col-form-label"></label>
+                                            <div class="col-3">
+                                                <input asp-for="@eventItems[i].Amount" class="form-control" type="number" />
+                                            </div>
+                                            <span asp-validation-for="@eventItems[i].Amount" class="text-danger"></span>
+                                        </div>
+                                        <br />
+                                        <div>
+                                            <button id='removeNewItemBtn' class='btn btn-secondary' name="removeNewItemBtn">Remove This Item</button><br><br />
+                                        </div>
+                                    </div>
+                                    <div class="col-5">
+                                        <br />
+                                        <div class="row">
+                                            <label>Item Image:</label>
+                                        </div>
+                                        <img id="previewImage[@i]" class="mt-3 mb-3" src="@Url.Content(path + eventItems[i].Image)" style="max-height:400px;max-width:400px" />
+                                        <input type="hidden" asp-for="EventItemImagesViewModels![i].EventItemIndex" />
+                                        <input type="file" class="mb-3 form-control" asp-for="EventItemImagesViewModels![i].EventItemImage" style="margin: 0 auto" accept=".png,.jpg,.jpeg,.gif" onchange="document.getElementById('previewImage[@i]').src = window.URL.createObjectURL(this.files[0])" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                }
+                <div class="option-container">
+                </div>
+            </div>
+            <button id="addNewItemBtn" class="btn btn-primary col-2">Add New Items</button>
+        </div>
+        <br /><br />
+        <div class="row">
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-success" /><span> </span>
+                <a class="btn btn-primary" type="button" asp-action="Edit" asp-route-id="@Model.EventDetail.EventId">Reset</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $("document").ready(function () {
+            UpdateItemNumber();
+            $("#addNewItemBtn").click(function (e) {
+                e.preventDefault();
+                var eventId = $('.ModelId').val();
+                AddEventItem('eventItems', eventId);
+            });
+            if ('@editRestrictedModeMessage' != '') {
+                AddModal('Edit Restricted Mode Notification', '@editRestrictedModeMessage');
+                SetFieldsAsReadOnly();
+            }
+            var regisStartDatePicker = SetDateTimePicker('EventDetail_RegistrationStartDate', 'RegistrationStartDatePickerInput', 'RegistrationStartDatePicker');
+            var regisEndDatePicker = SetDateTimePicker('EventDetail_RegistrationEndDate', 'RegistrationEndDatePickerInput', 'RegistrationEndDatePicker');
+            SetLinkedDateTimePicker(regisStartDatePicker, regisEndDatePicker);
+            var eventDatePicker = SetDateTimePicker('EventDetail_EventTime', 'EventDatePickerInput', 'EventDatePicker');
+            SetLinkedDateTimePicker(regisEndDatePicker, eventDatePicker, 1);
+        });
+        $(document).on('click', '#removeNewItemBtn', function (e) {
+            e.preventDefault();
+            RemoveEventItemConfirmationModal(e.currentTarget, 'eventItems');
+        });
+        function SetFieldsAsReadOnly(){
+            // $('input[name="EventDetail.RegistrationStartDate"]').attr('readonly', true);
+            // $('input[name="EventDetail.RegistrationStartDate"]').attr('min', null);
+            // $('input[name="EventDetail.RegistrationEndDate"]').attr('readonly', true);
+            // $('input[name="EventDetail.RegistrationEndDate"]').attr('min', null);
+            // $('input[name="EventDetail.EventTime"]').attr('readonly', true);
+            // $('input[name="EventDetail.EventTime"]').attr('min', null);
+            const removeEventItemButtons = Array.from(document.getElementsByName('removeNewItemBtn'));
+            removeEventItemButtons.forEach(removeEventItemButton => {
+                $(removeEventItemButton).attr('disabled', true);
+            });
+        }
+    </script>
+    <script src="~/lib/popper.js/umd/popper.js"></script>
+    <script src="~/lib/bootstrap-datetimepicker/js/tempus-dominus.js"></script>
+    <script src="~/js/DateTimePicker.js" asp-append-version="true"></script>
+    <script src="~/js/DateTimeValidation.js" asp-append-version="true"></script>
+    <script src="~/js/RemoveEventItem.js" asp-append-version="true"></script>
+    <script src="~/js/ItemNumberCounter.js" asp-append-version="true"></script>
+    <script src="~/js/AddNewEventItem.js" asp-append-version="true"></script>
+    <script src="~/js/AlertModal.js" asp-append-version="true"></script>
+}

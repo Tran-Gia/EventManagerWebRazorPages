@@ -1,0 +1,85 @@
+﻿@model IEnumerable<EventDetail>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string path = ViewBag.ImagePath;
+    string? participationUpdateMessage = (TempData["UpdateParticipationStatusResult"] != null && !String.IsNullOrEmpty(TempData["UpdateParticipationStatusResult"]!.ToString())) ? TempData["UpdateParticipationStatusResult"]!.ToString() : string.Empty;
+}
+
+@if(User.IsInRole("Organizer"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+<body>
+    @{
+        var counter = 0;
+    }
+    @foreach(var item in Model)
+    {
+        <br />
+        <div class="container">
+            <div class="border border-primary rounded bg-info text-white"> 
+                <div class="m-1">
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="h1 text-center">@item.Title</div>
+                            <p class="h3 lead" name="EventMessage">@item.Message</p>
+                        </div>
+                        <div class="col-4 float-right">
+                            <div class="pt-2">
+                                <img id="previewImage" src="@Url.Content(path +item.MainImage)" style="max-height:400px;max-width:400px" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-6 h4">
+                            <a asp-action="Details" asp-route-id="@item.EventId">Read More</a>
+                        </div>
+                    </div>
+                    @if (User.IsInRole("Organizer"))
+                    {
+                        <div class="row pb-2">
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Organize
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.EventId">Edit</a></li>
+                                    <li><a class="dropdown-item" asp-action="Delete" asp-route-id="@item.EventId">Delete</a></li>
+                                    <li><a class="dropdown-item" asp-action="ParticipationList" asp-route-id="@item.EventId">Participation List</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        counter++;
+                    }
+                </div>
+            </div>
+        </div>
+        <br />
+    }
+</body>
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var participationMessage = '@participationUpdateMessage';
+            if (participationMessage.length > 0)
+                AddModal('Registration Confirmation', participationMessage);
+            const eventDetailMessages = Array.from(document.getElementsByName('EventMessage'));
+            eventDetailMessages.forEach(eventDetailMessage => {
+                var message = eventDetailMessage.innerText;
+                if (message.length > 200) {
+                    message = message.substring(0, 197) + '...';
+                    eventDetailMessage.innerText = message;
+                }
+            });
+        });
+    </script>
+    <script src="~/js/AlertModal.js"></script>
+}

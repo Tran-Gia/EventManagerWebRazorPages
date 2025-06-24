@@ -1,0 +1,204 @@
+﻿@using EventManagerWebRazorPage.ViewModels
+@model EventDetailViewModel
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    List<EventItem>? eventItems = null;
+    if (Model != null && Model.EventDetail != null && Model.EventDetail.EventItem != null && Model.EventDetail.EventItem.Count > 0)
+    {
+        eventItems = Model.EventDetail.EventItem.ToList();
+    }
+    var minDate = DateTime.Now.Date.AddDays(1).ToString("yyyy-MM-dd");
+    //minDate = DateTime.Now.Date.AddDays(1).ToString("dd/MM/yyyy");
+}
+
+<h1>Create New Event</h1>
+<hr />
+<br/>
+<div class="row">
+    @using (Html.BeginForm("Create", "Event", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <div class="border-end col-6">
+                <div class="form-floating mb-3">
+                    @Html.EditorFor(x => x.EventDetail.Title, new { htmlAttributes = new { @class = "form-control", @placeholder = "Title" }, id = "InputTitle" })
+                    @Html.LabelFor(x => x.EventDetail.Title, htmlAttributes: new { @for = "InputTitle" })
+                    @Html.ValidationMessageFor(x => x.EventDetail.Title, "", new { @class = "text-danger" })
+                </div>
+                <div class="form-floating mb-3">
+                    @Html.TextAreaFor(x => x.EventDetail.Message, 3, 1, new { @class = "form-control", @id = "InputMessage", @placeholder = "Message", @style = "height:100%" })
+                    @Html.LabelFor(x => x.EventDetail.Message, htmlAttributes: new { @for = "InputMessage" })
+                    @Html.ValidationMessageFor(x => x.EventDetail.Message, "", new { @class = "text-danger" })
+                </div>
+                <div class="row pb-2">
+                    <label>Registration Timeline</label>
+                </div>
+                <div class="form-group pb-2">
+                    <div class="row">
+                        @Html.LabelFor(x => x.EventDetail.RegistrationStartDate, htmlAttributes: new { @class = "control-label col-form-label col-1" })
+                        <div class="col-5">
+                            <div class="input-group" id="RegistrationStartDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="RegistrationStartDatePickerInput" type="text" class="form-control" data-td-target="#RegistrationStartDatePicker" readonly style="background:white" />
+                                @Html.HiddenFor(x => x.EventDetail.RegistrationStartDate)
+                                <span class="input-group-text" data-td-target="#RegistrationStartDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                        @Html.LabelFor(x => x.EventDetail.RegistrationEndDate, htmlAttributes: new { @class = "control-label col-form-label col-1" })
+                        <div class="col-5">
+                            <div class="input-group" id="RegistrationEndDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="RegistrationEndDatePickerInput" type="text" class="form-control" data-td-target="#RegistrationEndDatePicker" readonly style="background:white" />
+                                @Html.HiddenFor(x => x.EventDetail.RegistrationEndDate)
+                                <span class="input-group-text" data-td-target="#RegistrationEndDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        @Html.ValidationMessageFor(x => x.EventDetail.RegistrationStartDate, "", new { @class = "text-danger" })
+                        @Html.ValidationMessageFor(x => x.EventDetail.RegistrationEndDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group pb-2">
+                    <div class="row">
+                        @Html.LabelFor(x => x.EventDetail.EventTime, htmlAttributes: new { @class = "control-label col-form-label col-3" })
+                        <div class="col-9">
+                            <div class="input-group" id="EventDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="EventDatePickerInput" type="text" class="form-control" data-td-target="#EventDatePicker" readonly style="background:white" />
+                                @Html.HiddenFor(x => x.EventDetail.EventTime)
+                                <span class="input-group-text" data-td-target="#EventDatePicker" data-td-toggle="datetimepicker">
+                                    <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @Html.ValidationMessageFor(x => x.EventDetail.EventTime, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    @Html.Label("Event Image:", "Event Image:", htmlAttributes: new { @class = "pb-2" })
+                    <img id="previewImage" class="mb-2" src="" style="max-height:400px;max-width:400px" />
+                    @Html.EditorFor(x => x.EventDetail.MainImage, "Image", "Image", new { htmlAttributes = new { @class = "form-control", @type = "file", @style = "margin: 0 auto", @required = "required", @accept = ".png,.jpg,.jpeg,.gif", @onchange = "document.getElementById('previewImage').src = window.URL.createObjectURL(this.files[0])" } })
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="form-group">
+                <div class="h4">
+                    Event Items:
+                    <small class="text-muted ps-3" id="ItemCounter"></small>
+                </div>
+                @Html.ValidationMessageFor(x => x.EventDetail.EventItem)
+                <br />
+                <div class="option-container collapse show" id="EventItemsContainer">
+                    @if (eventItems != null && eventItems.Count > 0)
+                    {
+                        @for (int i = 0; i < eventItems.Count; i++)
+                        {
+                            var visible = false;
+                            if (eventItems[i].EventId != "0")
+                            {
+                                visible = true;
+                            }
+                            <div class='options' data-id='@i' style='@(visible ? "display:block" : "display:none")'>
+                                <div class="row">
+                                    <div class="col-1 d-flex justify-content-center">
+                                        <div class="row d-flex align-content-center">
+                                            <div class="border border-primary">
+                                                <label class="fw-bold" name="ItemNumber"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-11 border border-primary rounded">
+                                        <div class="row">
+                                            <div class="col-6 ms-2 me-2 pb-3 border-end">
+                                                <br />
+                                                <div class="form-floating mb-3">
+                                                    @Html.EditorFor(x => eventItems[i].ItemName, "EventDetail.EventItem[" + i + "].ItemName", "EventDetail.EventItem[" + i + "].ItemName", new { htmlAttributes = new { @class = "form-control", @placeholder = "Item Name" } })
+                                                    @Html.LabelFor(x => eventItems[i].ItemName, "Item Name")
+                                                    @Html.ValidationMessageFor(x => eventItems[i].ItemName, "", new { @class = "text-danger" })
+                                                </div>
+                                                @Html.Hidden(eventItems[i].EventId, new { @name = "EventDetail.EventItem[" + i + "].EventId", @value = (visible ? 1 : 0) })
+                                                @Html.HiddenFor(x => x.EventItemImagesViewModels![i].EventItemIndex, new { @value = i })
+                                                <div class="form-floating mb-3">
+                                                    @Html.TextAreaFor(x => eventItems[i].Description, 2, 1, new { @class = "form-control", @placeholder = "Description", @id = "ItemDescription", @name = "EventDetail.EventItem[" + i + "].Description", @style = "height:100%" })
+                                                    @Html.LabelFor(x => eventItems[i].Description, "Description")
+                                                    @Html.ValidationMessage("EventDetail.EventItem[" + i + "].Description", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="row">
+                                                    @Html.Label("Amount", "Amount", new { @class = "col-2 col-form-label" })
+                                                    <div class="col-3">
+                                                        @Html.EditorFor(x => eventItems[i].Amount, "EventDetail.EventItem[" + i + "].Amount", new { htmlAttributes = new { @class = "form-control", @name = "EventDetail.EventItem[" + i + "].Amount" } })
+                                                    </div>
+                                                    @Html.ValidationMessageFor(x => eventItems[i].Amount, "", new { @class = "text-danger" })
+                                                </div>
+                                                <br />
+                                                <button id='removeNewItemBtn' class='btn btn-secondary' name="removeNewItemBtn">Remove This Item</button>
+                                            </div>
+                                            <div class="col-5">
+                                                <br />
+                                                <div class="row">
+                                                    <label>Item Image:</label>
+                                                </div>
+                                                <img id='previewImage[@i]' class="mt-3 mb-3" src='' style='max-height:400px;max-width:400px' />
+                                                @Html.EditorFor(x => x.EventItemImagesViewModels![i].EventItemImage, "Image", "Image", new { htmlAttributes = new { @class = "mb-3 form-control", @type = "file", @style = "margin: 0 auto", @accept = ".png,.jpg,.jpeg,.gif", @onchange = "document.getElementById('previewImage[" + i + "]').src = window.URL.createObjectURL(this.files[0])" } })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <button id="addNewItemBtn" class="btn btn-primary col-2">Add New Items</button>
+        </div>
+        <br /><br />
+        <div class="row">
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-success pe-2" />
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#EventItemsContainer" aria-expanded="true" aria-controls="EventItemsContainer">Hide/Unhide Event Items</button>
+            </div>
+        </div>
+    }
+</div>
+<br/>
+<div>
+    @Html.ActionLink("Back To List", "Index", "Event")
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $("document").ready(function () {
+            UpdateItemNumber();
+            $("#addNewItemBtn").on('click', function (e) {
+                e.preventDefault();
+                AddEventItem('EventDetail.EventItem', '1');
+            });
+            var regisStartDatePicker = SetDateTimePicker('EventDetail_RegistrationStartDate', 'RegistrationStartDatePickerInput', 'RegistrationStartDatePicker');
+            var regisEndDatePicker = SetDateTimePicker('EventDetail_RegistrationEndDate', 'RegistrationEndDatePickerInput', 'RegistrationEndDatePicker');
+            SetLinkedDateTimePicker(regisStartDatePicker, regisEndDatePicker);
+            var eventDatePicker = SetDateTimePicker('EventDetail_EventTime', 'EventDatePickerInput', 'EventDatePicker');
+            SetLinkedDateTimePicker(regisEndDatePicker, eventDatePicker, 1);
+        });
+        $(document).on('click', '#removeNewItemBtn', function (e) {
+            e.preventDefault();
+            RemoveEventItemConfirmationModal(e.currentTarget, 'EventDetail.EventItem');
+        });
+    </script>
+    <script src="~/lib/popper.js/umd/popper.js"></script>
+    <script src="~/lib/bootstrap-datetimepicker/js/tempus-dominus.js"></script>
+    <script src="~/js/DateTimePicker.js" asp-append-version="true"></script>
+    <script src="~/js/DateTimeValidation.js" asp-append-version="true"></script>
+    <script src="~/js/RemoveEventItem.js" asp-append-version="true"></script>
+    <script src="~/js/ItemNumberCounter.js" asp-append-version="true"></script>
+    <script src="~/js/AddNewEventItem.js" asp-append-version="true"></script>
+}
