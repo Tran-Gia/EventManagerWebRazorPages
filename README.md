@@ -17,4 +17,4 @@ Techs:
 - Serilog
 - MimeKit
 - Javascript
-- -SignalR
+- SignalR
